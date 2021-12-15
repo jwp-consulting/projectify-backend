@@ -20,7 +20,6 @@ class TodoItemFolder(DjangoObjectType):
 
     class Meta:
         """Meta."""
-
         model = models.TodoItemFolder
 
 
@@ -64,6 +63,7 @@ class Query:
 
     def resolve_todo_item_folders(self, info, page, size):
         """Resolve a page of todo item folders."""
+        
         qs = info.context.user.todoitemfolder_set.all()
         print(qs)
         return paginate(qs, page, size)
@@ -72,3 +72,6 @@ class Query:
         """Resolve a page of todo items."""
         qs = info.context.user.todoitem_set.all()
         return paginate(qs, page, size)
+
+
+    

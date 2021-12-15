@@ -1,0 +1,13 @@
+django
+graphene-django
+factory-boy
+pytest-django
+python-dotenv
+dj-database-url
+psycopg2
+django-extensions
+tqdm
+django-cors-headers
+black
+python_version
+python-decouple

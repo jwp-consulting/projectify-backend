@@ -18,6 +18,7 @@ from django.urls import path
 from django.views.decorators import csrf
 
 from graphene_django.views import GraphQLView
+from simpletodo.schema import schema
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -27,3 +28,14 @@ urlpatterns = [
         name="graphql",
     ),
 ]
+
+
+
+
+
+    
+    
+
+    
+
+    

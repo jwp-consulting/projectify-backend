@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
 import dj_database_url
-
+from decouple import config
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 SESSION_COOKIE_SAMESITE = "None"
@@ -49,6 +49,7 @@ INSTALLED_APPS_DJANGO = (
 INSTALLED_APPS_THIRD_PARTY = (
     "django_extensions",
     "graphene_django",
+    "corsheaders",
 )
 
 INSTALLED_APPS_FIRST_PARTY = (
