@@ -556,25 +556,37 @@ class UpdateSubTaskMutation(graphene.Mutation):
 
 
 # Delete Mutations
+class DeleteWorkspaceBoardInput(graphene.InputObjectType):
+    """DeleteWorkspaceBoardMutation input."""
+
+    uuid = graphene.ID(required=True)
+
+
 class DeleteWorkspaceBoardMutation(graphene.Mutation):
     """Delete workspace board mutation."""
 
     class Arguments:
         """Arguments."""
 
-        uuid = graphene.ID(required=True)
+        input = DeleteWorkspaceBoardInput(required=True)
 
     workspace_board = graphene.Field(types.WorkspaceBoard)
 
     @classmethod
-    def mutate(cls, root, info, uuid):
+    def mutate(cls, root, info, input):
         """Delete workspace board."""
         workspace_board = models.WorkspaceBoard.objects.get_for_user_and_uuid(
             info.context.user,
-            uuid,
+            input.uuid,
         )
         workspace_board.delete()
         return cls(workspace_board)
+
+
+class DeleteWorkspaceBoardSectionInput(graphene.InputObjectType):
+    """DeleteWorkspaceBoardSectionMutation input."""
+
+    uuid = graphene.ID(required=True)
 
 
 class DeleteWorkspaceBoardSectionMutation(graphene.Mutation):
@@ -583,21 +595,27 @@ class DeleteWorkspaceBoardSectionMutation(graphene.Mutation):
     class Arguments:
         """Arguments."""
 
-        uuid = graphene.ID(required=True)
+        input = DeleteWorkspaceBoardSectionInput(required=True)
 
     workspace_board_section = graphene.Field(types.WorkspaceBoardSection)
 
     @classmethod
-    def mutate(cls, root, info, uuid):
+    def mutate(cls, root, info, input):
         """Delete workspace section board."""
         workspace_board_section = (
             models.WorkspaceBoardSection.objects.get_for_user_and_uuid(
                 info.context.user,
-                uuid,
+                input.uuid,
             )
         )
         workspace_board_section.delete()
         return cls(workspace_board_section)
+
+
+class DeleteTaskInput(graphene.InputObjectType):
+    """DeleteTaskMutation input."""
+
+    uuid = graphene.ID(required=True)
 
 
 class DeleteTaskMutation(graphene.Mutation):
@@ -606,19 +624,25 @@ class DeleteTaskMutation(graphene.Mutation):
     class Arguments:
         """Arguments."""
 
-        uuid = graphene.ID(required=True)
+        input = DeleteTaskInput(required=True)
 
     task = graphene.Field(types.Task)
 
     @classmethod
-    def mutate(cls, root, info, uuid):
+    def mutate(cls, root, info, input):
         """Delete task."""
         task = models.Task.objects.get_for_user_and_uuid(
             info.context.user,
-            uuid,
+            input.uuid,
         )
         task.delete()
         return cls(task)
+
+
+class DeleteSubTaskInput(graphene.InputObjectType):
+    """DeleteTaskMutation input."""
+
+    uuid = graphene.ID(required=True)
 
 
 class DeleteSubTaskMutation(graphene.Mutation):
@@ -627,16 +651,16 @@ class DeleteSubTaskMutation(graphene.Mutation):
     class Arguments:
         """Arguments."""
 
-        uuid = graphene.ID(required=True)
+        input = DeleteSubTaskInput(required=True)
 
     sub_task = graphene.Field(types.SubTask)
 
     @classmethod
-    def mutate(cls, root, info, uuid):
+    def mutate(cls, root, info, input):
         """Delete task."""
         sub_task = models.SubTask.objects.get_for_user_and_uuid(
             info.context.user,
-            uuid,
+            input.uuid,
         )
         sub_task.delete()
         return cls(sub_task)

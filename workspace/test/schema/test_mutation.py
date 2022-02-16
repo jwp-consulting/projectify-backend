@@ -744,7 +744,7 @@ class TestDeleteWorkspaceBoardMutation:
 
     query = """
 mutation DeleteWorkspaceBoard($uuid: ID!) {
-  deleteWorkspaceBoard(uuid: $uuid) {
+  deleteWorkspaceBoard(input: {uuid: $uuid}) {
     workspaceBoard {
       uuid
     }
@@ -807,7 +807,7 @@ class TestDeleteWorkspaceBoardSectionMutation:
 
     query = """
 mutation DeleteWorkspaceBoardSection($uuid: ID!) {
-  deleteWorkspaceBoardSection(uuid: $uuid) {
+  deleteWorkspaceBoardSection(input: {uuid: $uuid}) {
     workspaceBoardSection {
       uuid
     }
@@ -862,7 +862,7 @@ class TestDeleteTask:
 
     query = """
 mutation DeleteTask($uuid: ID!) {
-  deleteTask(uuid: $uuid) {
+  deleteTask(input: {uuid: $uuid}) {
     task {
       uuid
     }
@@ -908,7 +908,7 @@ class TestDeleteSubTask:
 
     query = """
 mutation DeleteSubTask($uuid: ID!) {
-  deleteSubTask(uuid: $uuid) {
+  deleteSubTask(input: {uuid: $uuid}) {
     subTask {
       uuid
     }
