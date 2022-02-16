@@ -13,6 +13,21 @@ from . import (
 )
 
 
+class GetForUserAndUuidMixin:
+    """Helper mixin to make retrieving objects simpler."""
+
+    def get_object(self, info, input):
+        """Return object in question."""
+        if hasattr(self, "UUID_FIELD"):
+            uuid = getattr(input, self.UUID_FIELD)
+        else:
+            uuid = input.uuid
+        return self.model.objects.get_for_user_and_uuid(
+            info.context.user,
+            uuid,
+        )
+
+
 class AddWorkspaceBoardInput(graphene.InputObjectType):
     """Add workspace board input."""
 
@@ -21,8 +36,11 @@ class AddWorkspaceBoardInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class AddWorkspaceBoardMutation(graphene.Mutation):
+class AddWorkspaceBoardMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Add workspace board mutation."""
+
+    model = models.Workspace
+    UUID_FIELD = "workspace_uuid"
 
     class Arguments:
         """Arguments."""
@@ -34,10 +52,7 @@ class AddWorkspaceBoardMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        workspace = models.Workspace.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.workspace_uuid,
-        )
+        workspace = cls.get_object(cls, info, input)
         workspace_board = workspace.add_workspace_board(
             title=input.title,
             description=input.description,
@@ -53,8 +68,14 @@ class AddWorkspaceBoardSectionInput(graphene.InputObjectType):
     description = graphene.ID(required=True)
 
 
-class AddWorkspaceBoardSectionMutation(graphene.Mutation):
+class AddWorkspaceBoardSectionMutation(
+    GetForUserAndUuidMixin,
+    graphene.Mutation,
+):
     """Add workspace board section mutation."""
+
+    model = models.WorkspaceBoard
+    UUID_FIELD = "workspace_board_uuid"
 
     class Arguments:
         """Arguments."""
@@ -66,10 +87,7 @@ class AddWorkspaceBoardSectionMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        workspace_board = models.WorkspaceBoard.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.workspace_board_uuid,
-        )
+        workspace_board = cls.get_object(cls, info, input)
         workspace_board_section = workspace_board.add_workspace_board_section(
             title=input.title,
             description=input.description,
@@ -85,8 +103,11 @@ class AddTaskMutationInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class AddTaskMutation(graphene.Mutation):
+class AddTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Add task mutation."""
+
+    model = models.WorkspaceBoardSection
+    UUID_FIELD = "workspace_board_section_uuid"
 
     class Arguments:
         """Arguments."""
@@ -98,12 +119,7 @@ class AddTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        workspace_board_section = (
-            models.WorkspaceBoardSection.objects.get_for_user_and_uuid(
-                info.context.user,
-                input.workspace_board_section_uuid,
-            )
-        )
+        workspace_board_section = cls.get_object(cls, info, input)
         task = workspace_board_section.add_task(
             input.title,
             input.description,
@@ -119,8 +135,11 @@ class AddSubTaskInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class AddSubTaskMutation(graphene.Mutation):
+class AddSubTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Add subtask mutation."""
+
+    model = models.Task
+    UUID_FIELD = "task_uuid"
 
     class Arguments:
         """Arguments."""
@@ -132,10 +151,7 @@ class AddSubTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        task = models.Task.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.task_uuid,
-        )
+        task = cls.get_object(cls, info, input)
         sub_task = task.add_sub_task(
             input.title,
             input.description,
@@ -150,8 +166,11 @@ class AddChatMessageInput(graphene.InputObjectType):
     text = graphene.String(required=True)
 
 
-class AddChatMessageMutation(graphene.Mutation):
+class AddChatMessageMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Add ChatMessage mutation."""
+
+    model = models.Task
+    UUID_FIELD = "task_uuid"
 
     class Arguments:
         """Arguments."""
@@ -163,10 +182,7 @@ class AddChatMessageMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        task = models.Task.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.task_uuid,
-        )
+        task = cls.get_object(cls, info, input)
         chat_message = task.add_chat_message(
             text=input.text,
             author=info.context.user,
@@ -181,8 +197,11 @@ class ChangeSubTaskDoneInput(graphene.InputObjectType):
     done = graphene.Boolean(required=True)
 
 
-class ChangeSubTaskDoneMutation(graphene.Mutation):
+class ChangeSubTaskDoneMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Change sub task done state Mutation."""
+
+    model = models.SubTask
+    UUID_FIELD = "sub_task_uuid"
 
     class Arguments:
         """Arguments."""
@@ -194,10 +213,7 @@ class ChangeSubTaskDoneMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        sub_task = models.SubTask.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.sub_task_uuid,
-        )
+        sub_task = cls.get_object(cls, info, input)
         sub_task.done = input.done
         sub_task.save()
         return cls(sub_task)
@@ -210,8 +226,14 @@ class MoveWorkspaceBoardSectionInput(graphene.InputObjectType):
     order = graphene.Int(required=True)
 
 
-class MoveWorkspaceBoardSectionMutation(graphene.Mutation):
+class MoveWorkspaceBoardSectionMutation(
+    GetForUserAndUuidMixin,
+    graphene.Mutation,
+):
     """Move workspace board section mutation."""
+
+    model = models.WorkspaceBoardSection
+    UUID_FIELD = "workspace_board_section_uuid"
 
     class Arguments:
         """Arguments."""
@@ -223,12 +245,7 @@ class MoveWorkspaceBoardSectionMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        workspace_board_section = (
-            models.WorkspaceBoardSection.objects.get_for_user_and_uuid(
-                info.context.user,
-                input.workspace_board_section_uuid,
-            )
-        )
+        workspace_board_section = cls.get_object(cls, info, input)
         workspace_board_section.move_to(input.order)
         return cls(workspace_board_section)
 
@@ -241,8 +258,11 @@ class MoveTaskInput(graphene.InputObjectType):
     order = graphene.Int(required=True)
 
 
-class MoveTaskMutation(graphene.Mutation):
+class MoveTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Move task mutation."""
+
+    model = models.WorkspaceBoardSection
+    UUID_FIELD = "workspace_board_section_uuid"
 
     class Arguments:
         """Arguments."""
@@ -255,12 +275,7 @@ class MoveTaskMutation(graphene.Mutation):
     def mutate(cls, root, info, input):
         """Mutate."""
         # Find workspace board section
-        workspace_board_section = (
-            models.WorkspaceBoardSection.objects.get_for_user_and_uuid(
-                info.context.user,
-                input.workspace_board_section_uuid,
-            )
-        )
+        workspace_board_section = cls.get_object(cls, info, input)
         # Find task
         task = models.Task.objects.get_for_user_and_uuid(
             info.context.user,
@@ -279,8 +294,10 @@ class AddUserToWorkspaceInput(graphene.InputObjectType):
     email = graphene.String(required=True)
 
 
-class AddUserToWorkspaceMutation(graphene.Mutation):
+class AddUserToWorkspaceMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Mutation for adding users to workspaces."""
+
+    model = models.Workspace
 
     class Arguments:
         """Arguments."""
@@ -293,10 +310,7 @@ class AddUserToWorkspaceMutation(graphene.Mutation):
     def mutate(cls, root, info, input):
         """Mutate."""
         # Find workspace
-        workspace = models.Workspace.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        workspace = cls.get_object(cls, info, input)
         # Find user
         User = get_user_model()
         user = User.objects.get_by_natural_key(input.email)
@@ -312,8 +326,10 @@ class AssignTaskInput(graphene.InputObjectType):
     email = graphene.String(required=True)
 
 
-class AssignTaskMutation(graphene.Mutation):
+class AssignTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Mutation to assign tasks to users."""
+
+    model = models.Task
 
     class Arguments:
         """Arguments."""
@@ -325,10 +341,7 @@ class AssignTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Assign task to user."""
-        task = models.Task.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        task = cls.get_object(cls, info, input)
         User = get_user_model()
         assignee = User.objects.get_by_natural_key(input.email)
         task.assign_to(assignee)
@@ -341,8 +354,10 @@ class DuplicateTaskInput(graphene.InputObjectType):
     uuid = graphene.ID(required=True)
 
 
-class DuplicateTaskMutation(graphene.Mutation):
+class DuplicateTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Duplicate task mutation."""
+
+    model = models.Task
 
     class Arguments:
         """Arguments."""
@@ -354,10 +369,7 @@ class DuplicateTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Duplicate a task."""
-        task = models.Task.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        task = cls.get_object(cls, info, input)
         new_task = models.Task.objects.duplicate_task(task)
         return cls(new_task)
 
@@ -371,8 +383,10 @@ class UpdateWorkspaceInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class UpdateWorkspaceMutation(graphene.Mutation):
+class UpdateWorkspaceMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Update workspace board mutation."""
+
+    model = models.Workspace
 
     class Arguments:
         """Arguments."""
@@ -384,10 +398,7 @@ class UpdateWorkspaceMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Update workspace."""
-        workspace = models.Workspace.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        workspace = cls.get_object(cls, info, input)
         workspace.title = input.title
         workspace.description = input.description
         workspace.save()
@@ -401,8 +412,10 @@ class ArchiveWorkspaceBoardInput(graphene.InputObjectType):
     archived = graphene.Boolean(required=True)
 
 
-class ArchiveWorkspaceBoardMutation(graphene.Mutation):
+class ArchiveWorkspaceBoardMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Archive workspace board."""
+
+    model = models.WorkspaceBoard
 
     class Arguments:
         """Arguments."""
@@ -414,10 +427,7 @@ class ArchiveWorkspaceBoardMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Mutate."""
-        workspace_board = models.WorkspaceBoard.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        workspace_board = cls.get_object(cls, info, input)
         if input.archived:
             workspace_board.archive()
         else:
@@ -433,8 +443,10 @@ class UpdateWorkspaceBoardInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class UpdateWorkspaceBoardMutation(graphene.Mutation):
+class UpdateWorkspaceBoardMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Update workspace board."""
+
+    model = models.WorkspaceBoard
 
     class Arguments:
         """Arguments."""
@@ -446,10 +458,7 @@ class UpdateWorkspaceBoardMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Update workspace board."""
-        workspace_board = models.WorkspaceBoard.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        workspace_board = cls.get_object(cls, info, input)
         workspace_board.title = input.title
         workspace_board.description = input.description
         workspace_board.save()
@@ -464,8 +473,13 @@ class UpdateWorkspaceBoardSectionInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class UpdateWorkspaceBoardSectionMutation(graphene.Mutation):
+class UpdateWorkspaceBoardSectionMutation(
+    GetForUserAndUuidMixin,
+    graphene.Mutation,
+):
     """Update workspace board section muatation."""
+
+    model = models.WorkspaceBoardSection
 
     class Arguments:
         """Arguments."""
@@ -477,12 +491,7 @@ class UpdateWorkspaceBoardSectionMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Update workspace board."""
-        workspace_board_section = (
-            models.WorkspaceBoardSection.objects.get_for_user_and_uuid(
-                info.context.user,
-                input.uuid,
-            )
-        )
+        workspace_board_section = cls.get_object(cls, info, input)
         workspace_board_section.title = input.title
         workspace_board_section.description = input.description
         workspace_board_section.save()
@@ -498,8 +507,10 @@ class UpdateTaskMutationInput(graphene.InputObjectType):
     deadline = graphene.DateTime(required=False)
 
 
-class UpdateTaskMutation(graphene.Mutation):
+class UpdateTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Update task mutation."""
+
+    model = models.Task
 
     class Arguments:
         """Arguments."""
@@ -511,10 +522,7 @@ class UpdateTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Update workspace board."""
-        task = models.Task.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        task = cls.get_object(cls, info, input)
         task.title = input.title
         task.description = input.description
         if input.deadline:
@@ -532,8 +540,10 @@ class UpdateSubTaskMutationInput(graphene.InputObjectType):
     description = graphene.String(required=True)
 
 
-class UpdateSubTaskMutation(graphene.Mutation):
+class UpdateSubTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Update subtask mutation."""
+
+    model = models.SubTask
 
     class Arguments:
         """Arguments."""
@@ -545,10 +555,7 @@ class UpdateSubTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Update workspace board."""
-        sub_task = models.SubTask.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        sub_task = cls.get_object(cls, info, input)
         sub_task.title = input.title
         sub_task.description = input.description
         sub_task.save()
@@ -562,8 +569,10 @@ class DeleteWorkspaceBoardInput(graphene.InputObjectType):
     uuid = graphene.ID(required=True)
 
 
-class DeleteWorkspaceBoardMutation(graphene.Mutation):
+class DeleteWorkspaceBoardMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Delete workspace board mutation."""
+
+    model = models.WorkspaceBoard
 
     class Arguments:
         """Arguments."""
@@ -575,10 +584,7 @@ class DeleteWorkspaceBoardMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Delete workspace board."""
-        workspace_board = models.WorkspaceBoard.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        workspace_board = cls.get_object(cls, info, input)
         workspace_board.delete()
         return cls(workspace_board)
 
@@ -589,8 +595,13 @@ class DeleteWorkspaceBoardSectionInput(graphene.InputObjectType):
     uuid = graphene.ID(required=True)
 
 
-class DeleteWorkspaceBoardSectionMutation(graphene.Mutation):
+class DeleteWorkspaceBoardSectionMutation(
+    GetForUserAndUuidMixin,
+    graphene.Mutation,
+):
     """Delete workspace board section mutation."""
+
+    model = models.WorkspaceBoardSection
 
     class Arguments:
         """Arguments."""
@@ -602,12 +613,7 @@ class DeleteWorkspaceBoardSectionMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Delete workspace section board."""
-        workspace_board_section = (
-            models.WorkspaceBoardSection.objects.get_for_user_and_uuid(
-                info.context.user,
-                input.uuid,
-            )
-        )
+        workspace_board_section = cls.get_object(cls, info, input)
         workspace_board_section.delete()
         return cls(workspace_board_section)
 
@@ -618,8 +624,10 @@ class DeleteTaskInput(graphene.InputObjectType):
     uuid = graphene.ID(required=True)
 
 
-class DeleteTaskMutation(graphene.Mutation):
+class DeleteTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Delete task."""
+
+    model = models.Task
 
     class Arguments:
         """Arguments."""
@@ -631,10 +639,7 @@ class DeleteTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Delete task."""
-        task = models.Task.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        task = cls.get_object(cls, info, input)
         task.delete()
         return cls(task)
 
@@ -645,8 +650,10 @@ class DeleteSubTaskInput(graphene.InputObjectType):
     uuid = graphene.ID(required=True)
 
 
-class DeleteSubTaskMutation(graphene.Mutation):
+class DeleteSubTaskMutation(GetForUserAndUuidMixin, graphene.Mutation):
     """Delete subtask."""
+
+    model = models.SubTask
 
     class Arguments:
         """Arguments."""
@@ -658,10 +665,7 @@ class DeleteSubTaskMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         """Delete task."""
-        sub_task = models.SubTask.objects.get_for_user_and_uuid(
-            info.context.user,
-            input.uuid,
-        )
+        sub_task = cls.get_object(cls, info, input)
         sub_task.delete()
         return cls(sub_task)
 
