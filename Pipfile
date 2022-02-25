@@ -20,10 +20,10 @@ pytest = "*"
 
 [packages]
 dj-database-url = "*"
-django = "==3.2.12"
+django = "==4.0.2"
 django-cors-headers = "*"
 django-extensions = "*"
-graphene-django = "<3.0.0"
+graphene-django = "*"
 psycopg2 = "*"
 python-dotenv = "*"
 whitenoise = "*"
