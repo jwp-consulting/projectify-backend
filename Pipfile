@@ -43,6 +43,7 @@ strawberry-graphql = "*"
 strawberry-graphql-django = "*"
 stripe = "*"
 rules = "*"
+django-notifications-hq = "*"
 
 [requires]
 python_version = "3.10"

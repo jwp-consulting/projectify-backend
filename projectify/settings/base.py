@@ -69,6 +69,7 @@ INSTALLED_APPS_THIRD_PARTY = (
     "premail",
     "rest_framework",
     "rules.apps.AutodiscoverRulesConfig",
+    "notifications",
 )
 
 INSTALLED_APPS_FIRST_PARTY = (

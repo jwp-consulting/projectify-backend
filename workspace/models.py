@@ -17,6 +17,9 @@ from django_extensions.db.models import (
     TimeStampedModel,
     TitleDescriptionModel,
 )
+from notifications.signals import (
+    notify,
+)
 from user import models as user_models
 
 from . import (
@@ -508,7 +511,18 @@ class Task(
 
     objects = TaskQuerySet.as_manager()
 
-    def move_to(self, workspace_board_section, order):
+    def notify(self, verb, sender=None):
+        """Notify assignee of change."""
+        if sender is None:
+            pass
+        if self.assignee:
+            notify.send(
+                sender=sender,
+                recipient=self.assignee,
+                verb=verb,
+            )
+
+    def move_to(self, workspace_board_section, order, actor=None):
         """
         Move to specified workspace board section and to order n.
 
@@ -536,6 +550,19 @@ class Task(
             # Set the order
             workspace_board_section.set_task_order(order_list)
             workspace_board_section.save()
+        if actor:
+            self.notify(
+                sender=actor,
+                verb=_(
+                    "Sender {sender_name} has moved task number {number} to\
+                         order {order} in section {section_title}."
+                ).format(
+                    sender_name=actor.full_name,
+                    number=self.number,
+                    order=order,
+                    section_title=workspace_board_section.title,
+                ),
+            )
 
     def add_sub_task(self, title, description):
         """Add a sub task."""
@@ -548,7 +575,7 @@ class Task(
             author=author,
         )
 
-    def assign_to(self, assignee):
+    def assign_to(self, assignee, actor=None):
         """
         Assign task to user.
 
@@ -561,7 +588,7 @@ class Task(
         # Change assignee
         self.assignee = assignee
         # Save
-        self.save()
+        self.save(assigned=True, assignment_actor=actor)
 
     def get_next_section(self):
         """Return instance of the next section."""
@@ -596,11 +623,33 @@ class Task(
             pass
         return label
 
-    def save(self, *args, **kwargs):
-        """Override save to add task number."""
+    def save(self, assigned=False, assignment_actor=None, *args, **kwargs):
+        """Override save to add business logic."""
         if self.number is None:
             self.number = self.workspace.increment_highest_task_number()
+        if assigned and self.assignee is not None:
+            if assignment_actor:
+                notify.send(
+                    sender=assignment_actor,
+                    recipient=self.assignee,
+                    verb=_(
+                        "{name} has assigned task number {number} to you."
+                    ).format(
+                        name=assignment_actor.full_name, number=self.number
+                    ),
+                )
         super().save(*args, **kwargs)
+
+    def delete(self, actor=None, *args, **kwargs):
+        """Override delete to notify assignee."""
+        if actor:
+            self.notify(
+                sender=actor,
+                verb=_("{name} has deleted task number {number}.").format(
+                    name=actor.full_name, number=self.number
+                ),
+            )
+        super().delete(*args, **kwargs)
 
     class Meta:
         """Meta."""
