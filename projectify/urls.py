@@ -31,6 +31,8 @@ from django.views.decorators import (
     csrf,
 )
 
+import django_eventstream
+
 from workspace.consumers import (
     TaskConsumer,
     WorkspaceBoardConsumer,

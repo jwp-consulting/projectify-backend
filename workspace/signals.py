@@ -203,25 +203,29 @@ def workspace_board_section_deleted(sender, instance, **kwargs):
 
 @receiver(post_save, sender=models.Task)
 def task_saved(sender, instance, **kwargs):
-    """Broadcast changes."""
-    workspace_board = instance.workspace_board_section.workspace_board
-    uuid = str(workspace_board.uuid)
-    task_uuid = str(instance.uuid)
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        f"workspace-board-{uuid}",
-        {
-            "type": "workspace.board.change",
-            "uuid": uuid,
-        },
-    )
-    async_to_sync(channel_layer.group_send)(
-        f"task-{task_uuid}",
-        {
-            "type": "task.change",
-            "uuid": task_uuid,
-        },
-    )
+    # """Broadcast changes."""
+    # workspace_board = instance.workspace_board_section.workspace_board
+    # uuid = str(workspace_board.uuid)
+    # task_uuid = str(instance.uuid)
+    # channel_layer = get_channel_layer()
+    # async_to_sync(channel_layer.group_send)(
+    #     f"workspace-board-{uuid}",
+    #     {
+    #         "type": "workspace.board.change",
+    #         "uuid": uuid,
+    #     },
+    # )
+    # async_to_sync(channel_layer.group_send)(
+    #     f"task-{task_uuid}",
+    #     {
+    #         "type": "task.change",
+    #         "uuid": task_uuid,
+    #     },
+    # )
+    from django_eventstream import send_event
+
+    print("SENDING EVENT")
+    send_event("test", "message", {"text": "TASK SAVED"})
 
 
 @receiver(post_delete, sender=models.Task)

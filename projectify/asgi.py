@@ -21,6 +21,10 @@ from channels.routing import (
     URLRouter,
 )
 
+from django.urls import path, re_path
+
+import django_eventstream
+
 
 os.environ.setdefault(
     "DJANGO_SETTINGS_MODULE", "projectify.settings.production"
@@ -36,7 +40,18 @@ websocket_application = AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
 
 application = ProtocolTypeRouter(
     {
-        "http": asgi_application,
+        "http": URLRouter(
+            [
+                path(
+                    "events/",
+                    AuthMiddlewareStack(
+                        URLRouter(django_eventstream.routing.urlpatterns)
+                    ),
+                    {"channels": ["test"]},
+                ),
+                re_path(r"", get_asgi_application()),
+            ]
+        ),
         "websocket": websocket_application,
     }
 )

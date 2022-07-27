@@ -71,6 +71,7 @@ INSTALLED_APPS_THIRD_PARTY = (
     "rest_framework",
     "rules.apps.AutodiscoverRulesConfig",
     "pgtrigger",
+    "django_eventstream",
 )
 
 INSTALLED_APPS_FIRST_PARTY = (
@@ -88,6 +89,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = [
+    "django_grip.GripMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.gzip.GZipMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -256,3 +258,6 @@ MEDIA_CLOUDINARY_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 # Debug
 DEBUG_TOOLBAR = False
 DEBUG = False
+
+# PUSHPIN
+GRIP_URL = "http://localhost:5561"
